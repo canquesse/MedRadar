@@ -1,94 +1,182 @@
 #!/bin/bash
-# MedRadar — Çift tıkla, her şeyi halleder
+# MedRadar — Tanımlama + Kurulum scripti
 
-cd "$(dirname "$0")"
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:$PATH"
+LOG="$HOME/Desktop/medradar-log.txt"
 
-# ── Renkler ────────────────────────────────────────────────────────────────
-GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
-ok()   { echo -e "${GREEN}✓${NC}  $1"; }
-info() { echo -e "${YELLOW}…${NC}  $1"; }
-err()  { echo -e "${RED}✗${NC}  $1"; }
+# Hem terminale hem dosyaya yaz
+exec > >(tee "$LOG") 2>&1
 
+echo "════════════════════════════════════════"
+echo "  MedRadar Tanılama Raporu"
+echo "  $(date)"
+echo "════════════════════════════════════════"
 echo ""
-echo "  🏥  MedRadar başlatılıyor..."
-echo "  ────────────────────────────"
+
+echo "── SİSTEM ──────────────────────────────"
+echo "macOS: $(sw_vers -productVersion)"
+echo "Mimari: $(uname -m)"
+echo "Hostname: $(hostname)"
 echo ""
 
-# ── 1. Node.js kontrolü ────────────────────────────────────────────────────
-if ! command -v node &>/dev/null; then
-  err "Node.js kurulu değil!"
-  echo ""
-  echo "  Lütfen şu adımları izle:"
-  echo "  1) https://nodejs.org adresine git"
-  echo "  2) LTS yazan yeşil butona tıkla"
-  echo "  3) İndirilen .pkg dosyasını aç ve kur"
-  echo "  4) Bilgisayarı yeniden başlat"
-  echo "  5) Bu dosyaya tekrar çift tıkla"
-  echo ""
-  read -p "  Kapatmak için Enter'a bas..."
-  exit 1
+echo "── NODE.JS ─────────────────────────────"
+echo "which node: $(which node 2>/dev/null || echo 'BULUNAMADI')"
+echo "which npm:  $(which npm 2>/dev/null || echo 'BULUNAMADI')"
+echo ""
+
+for p in /usr/local/bin /opt/homebrew/bin /opt/homebrew/opt/node@18/bin /opt/homebrew/opt/node@20/bin; do
+  if [ -f "$p/node" ]; then
+    echo -n "$p/node → sürüm: "
+    "$p/node" --version 2>&1 || echo "ÇALIŞMIYOR (dyld/abi hatası)"
+    echo -n "$p/node → çalışıyor mu: "
+    "$p/node" -e "console.log('OK')" 2>&1
+  fi
+done
+echo ""
+
+echo "── NPM ─────────────────────────────────"
+if command -v npm &>/dev/null; then
+  npm --version 2>&1 || echo "npm çalışmıyor"
+else
+  echo "npm bulunamadı"
 fi
-ok "Node.js $(node -v) bulundu"
+echo ""
 
-# ── 2. Git kontrolü ────────────────────────────────────────────────────────
-if ! command -v git &>/dev/null; then
-  info "Git kuruluyor (bir kez gerekli, onay ver)..."
-  xcode-select --install 2>/dev/null
-  sleep 3
+echo "── GIT ─────────────────────────────────"
+echo "which git: $(which git 2>/dev/null || echo 'BULUNAMADI')"
+git --version 2>&1 || echo "git çalışmıyor"
+echo ""
+
+echo "── XCODE CLT ───────────────────────────"
+xcode-select -p 2>&1
+echo ""
+
+echo "── MASAÜSTÜ MedRadar KLASÖRÜ ───────────"
+APP="$HOME/Desktop/MedRadar"
+if [ -d "$APP" ]; then
+  echo "Klasör mevcut: $APP"
+  ls "$APP" 2>&1
   echo ""
-  echo "  Açılan pencereden 'Yükle' / 'Install' butonuna tıkla."
-  echo "  Kurulum bitince bu dosyaya tekrar çift tıkla."
+  echo "medtech_digest:"
+  ls "$APP/medtech_digest" 2>&1
   echo ""
-  read -p "  Kapatmak için Enter'a bas..."
+  echo "node_modules var mı: $([ -d "$APP/medtech_digest/node_modules" ] && echo 'EVET' || echo 'HAYIR')"
+  echo "package.json: $(cat "$APP/medtech_digest/package.json" 2>/dev/null | head -5 || echo 'YOK')"
+else
+  echo "Klasör YOK: $APP"
+fi
+echo ""
+
+echo "── PORT 3000 ────────────────────────────"
+lsof -ti:3000 2>/dev/null && echo "3000 portu kullanımda" || echo "3000 portu boş"
+echo ""
+
+echo "── KURULUM BAŞLIYOR ─────────────────────"
+echo ""
+
+# Xcode CLT
+if ! xcode-select -p &>/dev/null; then
+  echo "! Xcode CLT kuruluyor..."
+  xcode-select --install
+  echo "  Açılan pencereden 'Yükle' tıkla, bitince tekrar çalıştır."
+  read -p "  Enter'a bas..."
   exit 0
 fi
-ok "Git $(git --version | awk '{print $3}') bulundu"
+echo "✓ Xcode CLT hazır"
 
-# ── 3. Repo var mı? → Klonla ya da güncelle ────────────────────────────────
-APP_DIR="$HOME/Desktop/MedRadar"
-
-if [ ! -d "$APP_DIR/.git" ]; then
-  info "Uygulama ilk kez indiriliyor..."
-  git clone https://github.com/canquesse/MedRadar.git "$APP_DIR" 2>&1 | grep -v "^$"
-  ok "İndirildi"
-else
-  info "Güncelleme kontrol ediliyor..."
-  cd "$APP_DIR"
-  git pull --quiet origin main && ok "Güncelleme tamam" || info "Zaten güncel"
-fi
-
-cd "$APP_DIR/medtech_digest"
-
-# ── 4. node_modules kurulu mu? ────────────────────────────────────────────
-if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
-  info "Gerekli paketler kuruluyor (ilk seferinde 1-2 dk sürebilir)..."
-  npm install --silent
-  ok "Paketler kuruldu"
-else
-  ok "Paketler hazır"
-fi
-
-# ── 5. Server başlat ───────────────────────────────────────────────────────
-info "Server başlatılıyor..."
-npm start &
-SERVER_PID=$!
-
-# Server hazır olana kadar bekle (max 15 sn)
-for i in {1..15}; do
-  sleep 1
-  if curl -s http://localhost:3000 &>/dev/null; then
-    break
+# Node.js kontrolü — çalışıp çalışmadığına bak
+NODE_OK=false
+NODE_BIN=""
+for p in /usr/local/bin /opt/homebrew/bin /opt/homebrew/opt/node@18/bin; do
+  if [ -f "$p/node" ]; then
+    TEST=$("$p/node" -e "console.log('ok')" 2>&1)
+    if [ "$TEST" = "ok" ]; then
+      VER=$("$p/node" --version 2>&1)
+      MAJOR=$(echo "$VER" | sed 's/v//' | cut -d. -f1)
+      if [ "$MAJOR" -eq 18 ]; then
+        NODE_OK=true
+        NODE_BIN="$p/node"
+        NPM_BIN="$p/npm"
+        echo "✓ Node.js $VER çalışıyor ($p)"
+        break
+      else
+        echo "! Node.js $VER var ama uyumsuz (Catalina için 18 gerekli)"
+      fi
+    else
+      echo "! $p/node ÇALIŞMIYOR: $TEST"
+    fi
   fi
 done
 
-ok "Hazır!"
-echo ""
-echo "  👉  Tarayıcıda açılıyor: http://localhost:3000"
-echo ""
-open http://localhost:3000
+if [ "$NODE_OK" = false ]; then
+  echo ""
+  echo "→ Node.js 18 indiriliyor..."
+  curl -L --progress-bar \
+    "https://nodejs.org/dist/v18.20.7/node-v18.20.7.pkg" \
+    -o /tmp/node18.pkg
+  echo "→ Kuruluyor (şifre istenebilir)..."
+  sudo installer -pkg /tmp/node18.pkg -target /
+  rm -f /tmp/node18.pkg
+  hash -r
+  TEST=$(/usr/local/bin/node -e "console.log('ok')" 2>&1)
+  if [ "$TEST" = "ok" ]; then
+    echo "✓ Node.js 18 kuruldu"
+    NODE_BIN="/usr/local/bin/node"
+    NPM_BIN="/usr/local/bin/npm"
+  else
+    echo "✗ Node.js hâlâ çalışmıyor: $TEST"
+    echo ""
+    echo "Log dosyası masaüstünde: medradar-log.txt"
+    echo "Bu dosyayı geliştiriciye gönder."
+    read -p "Enter'a bas..."
+    exit 1
+  fi
+fi
 
-echo "  Bu pencereyi açık bırak. Kapatırsan uygulama durur."
+# Repo
+if [ ! -d "$APP/.git" ]; then
+  echo "→ MedRadar indiriliyor..."
+  git clone https://github.com/canquesse/MedRadar.git "$APP" 2>&1
+else
+  echo "→ Güncelleniyor..."
+  cd "$APP" && git pull origin main 2>&1
+fi
+
+# npm install
+cd "$APP/medtech_digest"
+if [ ! -d "node_modules" ] || [ "package.json" -nt "node_modules" ]; then
+  echo "→ npm install..."
+  "$NPM_BIN" install 2>&1
+fi
+
+# Eski process durdur
+OLD=$(lsof -ti:3000 2>/dev/null)
+[ -n "$OLD" ] && kill "$OLD" 2>/dev/null && sleep 1
+
+# Başlat
+echo ""
+echo "→ Server başlatılıyor..."
+"$NPM_BIN" start &
+PID=$!
+
+echo -n "  Bekleniyor"
+for i in {1..20}; do
+  sleep 1; echo -n "."
+  curl -s http://localhost:3000 &>/dev/null && break
+done
 echo ""
 
-# Server bitene kadar bekle
-wait $SERVER_PID
+if curl -s http://localhost:3000 &>/dev/null; then
+  echo "✅ Hazır! Tarayıcı açılıyor."
+  open http://localhost:3000
+else
+  echo "✗ Server başlamadı."
+  echo "Log dosyası masaüstünde: medradar-log.txt"
+fi
+
+echo ""
+echo "════════════════════════════════════════"
+echo "Log kaydedildi: $LOG"
+echo "════════════════════════════════════════"
+
+wait $PID
