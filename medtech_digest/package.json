@@ -1,0 +1,16 @@
+{
+  "name": "medtech-digest",
+  "version": "2.0.0",
+  "description": "Tıbbi Teknoloji Haber Takip Platformu",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.3",
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "rss-parser": "^3.13.0",
+    "sqlite3": "^5.1.6"
+  }
+}

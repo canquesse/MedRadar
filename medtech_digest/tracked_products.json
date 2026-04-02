@@ -1,0 +1,47 @@
+{
+  "products": [
+    {
+      "id": "naox-technologies-naox-link",
+      "name": "Naox Link",
+      "company": "Naox Technologies",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "synchron-stentrode",
+      "name": "Stentrode BCI",
+      "company": "Synchron",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "bivacor-total-artificial-heart",
+      "name": "BiVACOR Total Artificial Heart",
+      "company": "BiVACOR",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "evoendo-model-le-gastroscope",
+      "name": "EvoEndo Model LE Gastroscope",
+      "company": "EvoEndo",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "orthopreserve-defender",
+      "name": "Defender Meniscus İmplantı",
+      "company": "OrthoPreserve",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "seno-medical-imagio",
+      "name": "Imagio Breast Imaging System (Model 9100)",
+      "company": "Seno Medical",
+      "date_added": "2026-04-02"
+    },
+    {
+      "id": "medibeacon-tgfr",
+      "name": "TGFR™ Monitor & Reusable Sensor",
+      "company": "MediBeacon",
+      "date_added": "2026-04-02"
+    }
+  ],
+  "last_updated": "2026-04-02T12:00:00Z"
+}

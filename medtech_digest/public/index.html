@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedTech Digest</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">
+    <span class="logo-icon">🏥</span>
+    <div class="logo-text">
+      <strong>MedTech</strong>
+      <small>Digest</small>
+    </div>
+  </div>
+
+  <nav>
+    <button class="nav-item active" data-view="news">
+      <span class="nav-icon">📰</span>
+      <span class="nav-label">Haberler</span>
+    </button>
+    <button class="nav-item" data-view="categories">
+      <span class="nav-icon">🏷️</span>
+      <span class="nav-label">Kategoriler</span>
+    </button>
+    <button class="nav-item" data-view="fda">
+      <span class="nav-icon">✅</span>
+      <span class="nav-label">FDA Onayları</span>
+    </button>
+    <button class="nav-item" data-view="ce">
+      <span class="nav-icon">🇪🇺</span>
+      <span class="nav-label">CE Onayları</span>
+    </button>
+    <button class="nav-item" data-view="favorites">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Favoriler</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="stat-row"><span>Son Güncelleme</span><span id="lastUpdate">—</span></div>
+    <div class="stat-row"><span>Toplam Haber</span><span id="totalNews">—</span></div>
+    <div class="stat-row"><span>Favoriler</span><span id="totalFavs">—</span></div>
+    <button class="refresh-btn" onclick="doRefresh()">🔄 Yenile</button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <h1 id="viewTitle">Tüm Haberler</h1>
+    <div class="topbar-controls">
+      <label class="gc-toggle" title="Sadece breakthrough/önemli haberleri göster">
+        <input type="checkbox" id="gcFilter"> 🔥 Oyun Değiştirici
+      </label>
+      <select id="dayFilter">
+        <option value="1">Bugün</option>
+        <option value="3" selected>Son 3 Gün</option>
+        <option value="7">Son Hafta</option>
+      </select>
+    </div>
+  </header>
+
+  <!-- NEWS VIEW -->
+  <div id="view-news" class="view active">
+    <div id="newsList" class="news-list"></div>
+  </div>
+
+  <!-- CATEGORIES VIEW -->
+  <div id="view-categories" class="view">
+    <div id="categoryGrid" class="category-grid"></div>
+  </div>
+
+  <!-- FDA VIEW -->
+  <div id="view-fda" class="view">
+    <div class="approval-filter">
+      <button class="af-btn active" data-days="7" onclick="setApprovalFilter('FDA',7,this)">Bu Hafta</button>
+      <button class="af-btn" data-days="30" onclick="setApprovalFilter('FDA',30,this)">Son 30 Gün</button>
+      <button class="af-btn" data-days="90" onclick="setApprovalFilter('FDA',90,this)">Son 3 Ay</button>
+      <button class="af-btn" data-days="365" onclick="setApprovalFilter('FDA',365,this)">Bu Yıl</button>
+    </div>
+    <div id="fdaList" class="approval-list"></div>
+  </div>
+
+  <!-- CE VIEW -->
+  <div id="view-ce" class="view">
+    <div class="approval-filter">
+      <button class="af-btn active" data-days="7" onclick="setApprovalFilter('CE',7,this)">Bu Hafta</button>
+      <button class="af-btn" data-days="30" onclick="setApprovalFilter('CE',30,this)">Son 30 Gün</button>
+      <button class="af-btn" data-days="90" onclick="setApprovalFilter('CE',90,this)">Son 3 Ay</button>
+      <button class="af-btn" data-days="365" onclick="setApprovalFilter('CE',365,this)">Bu Yıl</button>
+    </div>
+    <div id="ceList" class="approval-list"></div>
+  </div>
+
+  <!-- FAVORITES VIEW -->
+  <div id="view-favorites" class="view">
+    <div id="favList" class="news-list"></div>
+  </div>
+
+</main>
+
+<!-- DETAIL MODAL -->
+<div id="modal" class="modal" onclick="handleModalClick(event)">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

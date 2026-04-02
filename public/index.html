@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedTech Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;1,6..72,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050810;
+  --surface: #0b1018;
+  --surface-2: #101620;
+  --surface-3: #151e2c;
+  --border: #1a2840;
+  --border-bright: #243652;
+  --accent: #00e5a0;
+  --accent-dim: rgba(0,229,160,0.1);
+  --accent-glow: rgba(0,229,160,0.3);
+  --red: #ff4444;
+  --gold: #f5c500;
+  --blue: #3b8bff;
+  --text: #8ba8c4;
+  --text-mid: #a8c4de;
+  --text-bright: #ddeeff;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --serif: 'Newsreader', Georgia, serif;
+
+  --cat-ai: #3b8bff;
+  --cat-robotics: #a855f7;
+  --cat-wearables: #00e5a0;
+  --cat-implants: #f59e0b;
+  --cat-diagnostics: #ef4444;
+  --cat-therapeutics: #f97316;
+  --cat-drug-device: #ec4899;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text-mid);
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* scanlines */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.06) 3px, rgba(0,0,0,0.06) 4px);
+  pointer-events: none; z-index: 9999;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky; top: 0; z-index: 200;
+  height: 56px;
+  background: rgba(5,8,16,0.95);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px;
+}
+
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-mark {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent), #00a0e5);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; flex-shrink: 0;
+}
+.logo-name {
+  font-family: var(--display); font-weight: 800; font-size: 14px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-bright);
+}
+.logo-tag {
+  font-family: var(--mono); font-size: 9px; color: var(--accent);
+  letter-spacing: 0.18em; text-transform: uppercase; margin-top: 1px;
+}
+
+.header-right { display: flex; align-items: center; gap: 16px; }
+.pulse-badge {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--accent);
+}
+.pulse-dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.stat-chip {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--text); padding: 4px 10px;
+  border: 1px solid var(--border); border-radius: 3px;
+  text-transform: uppercase;
+}
+
+/* ── TABS ── */
+.tabs {
+  display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface); padding: 0 24px;
+  position: sticky; top: 56px; z-index: 100;
+}
+.tab {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 14px 18px; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  color: var(--text); background: none; border-left: none; border-right: none; border-top: none;
+  transition: all 0.2s; white-space: nowrap;
+}
+.tab:hover { color: var(--text-bright); }
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border-radius: 3px;
+  background: var(--accent-dim); color: var(--accent);
+  font-size: 8px; margin-left: 6px; vertical-align: middle;
+}
+
+/* ── CONTENT ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+/* ── FILTER BAR ── */
+.filter-bar {
+  padding: 16px 24px; display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.filter-bar::-webkit-scrollbar { display: none; }
+.filter-chip {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 5px 12px;
+  border: 1px solid var(--border); border-radius: 3px;
+  cursor: pointer; white-space: nowrap; background: none; color: var(--text);
+  transition: all 0.15s;
+}
+.filter-chip:hover { border-color: var(--border-bright); color: var(--text-bright); }
+.filter-chip.active { color: #000; font-weight: 600; }
+.filter-chip[data-cat="ALL"].active { background: var(--accent); border-color: var(--accent); }
+.filter-chip[data-cat="AI"].active { background: var(--cat-ai); border-color: var(--cat-ai); }
+.filter-chip[data-cat="Robotics"].active { background: var(--cat-robotics); border-color: var(--cat-robotics); }
+.filter-chip[data-cat="Wearables"].active { background: var(--cat-wearables); border-color: var(--cat-wearables); }
+.filter-chip[data-cat="Implants"].active { background: var(--cat-implants); border-color: var(--cat-implants); }
+.filter-chip[data-cat="Diagnostics"].active { background: var(--cat-diagnostics); border-color: var(--cat-diagnostics); }
+.filter-chip[data-cat="Therapeutics"].active { background: var(--cat-therapeutics); border-color: var(--cat-therapeutics); }
+.filter-chip[data-cat="Drug-Device"].active { background: var(--cat-drug-device); border-color: var(--cat-drug-device); }
+
+/* ── PRODUCT GRID ── */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px; padding: 20px 24px;
+}
+
+/* ── PRODUCT CARD ── */
+.product-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: border-color 0.2s, transform 0.2s;
+  position: relative;
+}
+.product-card:hover {
+  border-color: var(--border-bright);
+  transform: translateY(-2px);
+}
+
+.card-img {
+  height: 160px; width: 100%;
+  object-fit: cover; display: block;
+  background: var(--surface-2);
+}
+.card-img-placeholder {
+  height: 160px; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.card-img-placeholder::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0.25;
+}
+.card-img-placeholder .cat-icon { font-size: 36px; position: relative; z-index: 1; filter: drop-shadow(0 0 12px currentColor); }
+
+/* category gradient backgrounds */
+.card-img-placeholder[data-cat="AI"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-ai), transparent 70%); }
+.card-img-placeholder[data-cat="Robotics"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-robotics), transparent 70%); }
+.card-img-placeholder[data-cat="Wearables"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-wearables), transparent 70%); }
+.card-img-placeholder[data-cat="Implants"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-implants), transparent 70%); }
+.card-img-placeholder[data-cat="Diagnostics"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-diagnostics), transparent 70%); }
+.card-img-placeholder[data-cat="Therapeutics"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-therapeutics), transparent 70%); }
+.card-img-placeholder[data-cat="Drug-Device"]::before { background: radial-gradient(circle at 30% 40%, var(--cat-drug-device), transparent 70%); }
+
+.card-badges {
+  position: absolute; top: 10px; left: 10px;
+  display: flex; gap: 5px; flex-wrap: wrap;
+}
+.badge {
+  font-family: var(--mono); font-size: 8px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px;
+  backdrop-filter: blur(8px);
+}
+.badge-cat { background: rgba(0,0,0,0.6); color: #fff; border: 1px solid rgba(255,255,255,0.15); }
+.badge-cat[data-cat="AI"] { color: var(--cat-ai); border-color: rgba(59,139,255,0.4); }
+.badge-cat[data-cat="Robotics"] { color: var(--cat-robotics); border-color: rgba(168,85,247,0.4); }
+.badge-cat[data-cat="Wearables"] { color: var(--cat-wearables); border-color: rgba(0,229,160,0.4); }
+.badge-cat[data-cat="Implants"] { color: var(--cat-implants); border-color: rgba(245,158,11,0.4); }
+.badge-cat[data-cat="Diagnostics"] { color: var(--cat-diagnostics); border-color: rgba(239,68,68,0.4); }
+.badge-cat[data-cat="Therapeutics"] { color: var(--cat-therapeutics); border-color: rgba(249,115,22,0.4); }
+.badge-cat[data-cat="Drug-Device"] { color: var(--cat-drug-device); border-color: rgba(236,72,153,0.4); }
+
+.badge-stage-startup { background: rgba(100,116,139,0.3); color: #94a3b8; border: 1px solid rgba(100,116,139,0.4); }
+.badge-stage-clinical { background: rgba(234,179,8,0.2); color: #eab308; border: 1px solid rgba(234,179,8,0.4); }
+.badge-stage-fda { background: rgba(59,139,255,0.2); color: var(--cat-ai); border: 1px solid rgba(59,139,255,0.4); }
+.badge-stage-ce { background: rgba(0,229,160,0.15); color: var(--accent); border: 1px solid rgba(0,229,160,0.35); }
+.badge-stage-both { background: linear-gradient(90deg, rgba(59,139,255,0.2), rgba(0,229,160,0.15)); color: var(--text-bright); border: 1px solid rgba(100,200,255,0.3); }
+
+.card-fav {
+  position: absolute; top: 10px; right: 10px;
+  background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px; backdrop-filter: blur(8px);
+  transition: all 0.2s; color: var(--text);
+}
+.card-fav:hover { border-color: var(--gold); color: var(--gold); }
+.card-fav.saved { color: var(--gold); border-color: var(--gold); background: rgba(245,197,0,0.12); }
+
+/* ── MODAL ── */
+#modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(5,8,16,0.88); backdrop-filter: blur(10px);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+#modal-overlay.open { display: flex; }
+#modal {
+  background: var(--surface); border: 1px solid var(--border-bright);
+  border-radius: 14px; max-width: 680px; width: 100%;
+  max-height: 90vh; overflow-y: auto; position: relative;
+  animation: modalIn 0.25s cubic-bezier(0.16,1,0.3,1);
+  scrollbar-width: thin;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:scale(0.96) translateY(12px); }
+  to   { opacity:1; transform:scale(1)    translateY(0); }
+}
+.modal-close {
+  position: sticky; top: 0; float: right;
+  margin: 12px 12px 0 0;
+  background: var(--surface-3); border: 1px solid var(--border);
+  color: var(--text); width: 30px; height: 30px; border-radius: 6px;
+  cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; z-index: 10;
+}
+.modal-close:hover { border-color: var(--red); color: var(--red); }
+.modal-img { width: 100%; height: 220px; object-fit: cover; border-radius: 12px 12px 0 0; display: block; }
+.modal-img-placeholder {
+  width: 100%; height: 220px; border-radius: 12px 12px 0 0;
+  display: flex; align-items: center; justify-content: center; font-size: 64px;
+  position: relative; overflow: hidden;
+}
+.modal-img-placeholder::before { content:''; position:absolute; inset:0; opacity:0.3; }
+.modal-img-placeholder[data-cat="AI"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-ai), transparent 65%); }
+.modal-img-placeholder[data-cat="Robotics"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-robotics), transparent 65%); }
+.modal-img-placeholder[data-cat="Wearables"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-wearables), transparent 65%); }
+.modal-img-placeholder[data-cat="Implants"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-implants), transparent 65%); }
+.modal-img-placeholder[data-cat="Diagnostics"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-diagnostics), transparent 65%); }
+.modal-img-placeholder[data-cat="Therapeutics"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-therapeutics), transparent 65%); }
+.modal-img-placeholder[data-cat="Drug-Device"]::before { background:radial-gradient(circle at 40% 40%, var(--cat-drug-device), transparent 65%); }
+.modal-body { padding: 24px 28px 32px; }
+.modal-meta { display:flex; align-items:center; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+.modal-company-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.modal-logo { width:28px; height:28px; border-radius:6px; object-fit:contain; background:var(--surface-3); }
+.modal-company-name { font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text); }
+.modal-website { font-family:var(--mono); font-size:10px; color:var(--accent); text-decoration:none; margin-left:auto; }
+.modal-website:hover { text-decoration:underline; }
+.modal-title { font-family:var(--display); font-size:24px; font-weight:800; color:var(--text-bright); line-height:1.25; margin-bottom:16px; }
+.modal-divider { height:1px; background:var(--border); margin: 16px 0; }
+.modal-section-label {
+  font-family:var(--mono); font-size:9px; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--text); margin-bottom:8px; display:flex; align-items:center; gap:6px;
+}
+.modal-summary { font-family:var(--serif); font-size:15px; line-height:1.8; color:var(--text-mid); }
+.modal-gc { background:var(--surface-3); border-radius:8px; padding:14px 16px; margin-top:16px; }
+.modal-gc-text { font-family:var(--serif); font-size:14px; font-style:italic; color:var(--text-bright); line-height:1.7; }
+.modal-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:16px; }
+.modal-tag {
+  font-family:var(--mono); font-size:9px; letter-spacing:0.1em; text-transform:uppercase;
+  padding:3px 9px; border:1px solid var(--border); border-radius:3px; color:var(--text);
+}
+.modal-footer { display:flex; align-items:center; justify-content:space-between; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+.modal-fav-btn {
+  display:flex; align-items:center; gap:7px; padding:8px 16px;
+  border:1px solid var(--border); border-radius:6px; background:none;
+  font-family:var(--mono); font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--text); cursor:pointer; transition:all 0.2s;
+}
+.modal-fav-btn:hover { border-color:var(--gold); color:var(--gold); }
+.modal-fav-btn.saved { border-color:var(--gold); color:var(--gold); background:rgba(245,197,0,0.1); }
+
+/* card clickable */
+.product-card { cursor: pointer; }
+
+.card-body { padding: 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+.card-company {
+  display: flex; align-items: center; gap: 8px;
+}
+.company-logo {
+  width: 22px; height: 22px; border-radius: 4px;
+  object-fit: contain; background: var(--surface-3);
+  flex-shrink: 0;
+}
+.company-name {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text);
+}
+.company-link {
+  font-size: 10px; color: var(--text); text-decoration: none;
+  opacity: 0.6; transition: opacity 0.2s; margin-left: auto;
+}
+.company-link:hover { opacity: 1; color: var(--accent); }
+
+.card-title {
+  font-family: var(--display); font-size: 16px; font-weight: 700;
+  color: var(--text-bright); line-height: 1.3;
+}
+
+.card-summary {
+  font-family: var(--serif); font-size: 13px; line-height: 1.65;
+  color: var(--text-mid);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-game-changer {
+  background: var(--surface-3); border-radius: 6px;
+  padding: 10px 12px; margin-top: auto;
+}
+.game-changer-label {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text); margin-bottom: 4px;
+  display: flex; align-items: center; gap: 5px;
+}
+.game-changer-text {
+  font-family: var(--serif); font-size: 12px; font-style: italic;
+  color: var(--text-bright); line-height: 1.5;
+}
+
+.card-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px solid var(--border);
+}
+.market-badge {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 4px;
+}
+.market-high { color: var(--text-mid); }
+.market-veryhigh { color: var(--gold); }
+.market-massive { color: var(--accent); }
+.card-year {
+  font-family: var(--mono); font-size: 9px; color: var(--text); letter-spacing: 0.08em;
+}
+
+/* ── FDA/CE SECTION ── */
+.approvals-layout {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  min-height: calc(100vh - 120px);
+}
+.approvals-col {
+  padding: 24px; border-right: 1px solid var(--border);
+}
+.approvals-col:last-child { border-right: none; }
+.approvals-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 20px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.approvals-title {
+  font-family: var(--display); font-size: 13px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-bright);
+}
+.approvals-flag { font-size: 18px; }
+.approval-count {
+  font-family: var(--mono); font-size: 10px; color: var(--text);
+  margin-left: auto; padding: 3px 8px;
+  border: 1px solid var(--border); border-radius: 3px;
+}
+
+.approval-item {
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+  animation: fadeUp 0.3s ease;
+}
+.approval-item:last-child { border-bottom: none; }
+.approval-meta {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.approval-type {
+  font-family: var(--mono); font-size: 8px; letter-spacing: 0.1em;
+  text-transform: uppercase; padding: 2px 7px; border-radius: 2px;
+}
+.type-510k { background: rgba(59,139,255,0.15); color: var(--cat-ai); border: 1px solid rgba(59,139,255,0.3); }
+.type-pma { background: rgba(168,85,247,0.15); color: var(--cat-robotics); border: 1px solid rgba(168,85,247,0.3); }
+.type-denovo { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.25); }
+.type-ce { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.25); }
+.approval-date { font-family: var(--mono); font-size: 9px; color: var(--text); }
+.approval-device { font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--text-bright); margin-bottom: 2px; }
+.approval-company { font-family: var(--mono); font-size: 10px; color: var(--text); margin-bottom: 6px; letter-spacing: 0.06em; }
+.approval-summary { font-family: var(--serif); font-size: 13px; color: var(--text-mid); line-height: 1.6; }
+
+/* ── ARCHIVE ── */
+.archive-list { padding: 20px 24px; display: flex; flex-direction: column; gap: 8px; }
+.archive-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  cursor: pointer; transition: all 0.15s;
+}
+.archive-item:hover { border-color: var(--border-bright); background: var(--surface-2); }
+.archive-date {
+  font-family: var(--display); font-size: 15px; font-weight: 700; color: var(--text-bright);
+  min-width: 160px;
+}
+.archive-meta { font-family: var(--mono); font-size: 10px; color: var(--text); letter-spacing: 0.06em; }
+.archive-badges { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+.archive-fav-btn {
+  background: none; border: 1px solid var(--border); border-radius: 4px;
+  width: 28px; height: 28px; cursor: pointer; font-size: 12px;
+  color: var(--text); display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.archive-fav-btn:hover, .archive-fav-btn.saved { color: var(--gold); border-color: var(--gold); }
+
+/* ── EMPTY / LOADING ── */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 80px 20px; text-align: center;
+}
+.empty-icon { font-size: 44px; }
+.empty-title { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--text-bright); }
+.empty-desc { font-family: var(--mono); font-size: 11px; color: var(--text); line-height: 1.8; max-width: 380px; }
+
+.loading { display: flex; align-items: center; gap: 10px; padding: 32px 24px; font-family: var(--mono); font-size: 11px; color: var(--text); }
+.spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── DATE PICKER ── */
+.date-selector {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-bottom: 1px solid var(--border);
+  overflow-x: auto; scrollbar-width: none;
+}
+.date-selector::-webkit-scrollbar { display: none; }
+.date-pill {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 5px 12px; border: 1px solid var(--border); border-radius: 20px;
+  cursor: pointer; white-space: nowrap; background: none; color: var(--text);
+  transition: all 0.15s; flex-shrink: 0;
+}
+.date-pill:hover { border-color: var(--border-bright); color: var(--text-bright); }
+.date-pill.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.date-pill .new-dot { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); margin-left: 5px; vertical-align: middle; }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .product-grid { grid-template-columns: 1fr; padding: 12px; }
+  .approvals-layout { grid-template-columns: 1fr; }
+  .approvals-col { border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">🏥</div>
+    <div>
+      <div class="logo-name">MedTech Intelligence</div>
+      <div class="logo-tag">Global Medikal Teknoloji Radar</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="pulse-badge"><div class="pulse-dot"></div>Her sabah 08:10</div>
+    <div class="stat-chip" id="trackedCount">— ürün takipte</div>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('products', this)">
+    Ürünler <span class="tab-count" id="tabProductCount">—</span>
+  </button>
+  <button class="tab" onclick="switchTab('approvals', this)">
+    FDA / CE Onayları <span class="tab-count" id="tabApprovalCount">—</span>
+  </button>
+  <button class="tab" onclick="switchTab('archive', this)">
+    Arşiv
+  </button>
+  <button class="tab" onclick="switchTab('favorites', this)">
+    Favoriler ★
+  </button>
+</div>
+
+<!-- PRODUCTS TAB -->
+<div id="tab-products" class="tab-panel active">
+  <div class="date-selector" id="datePills"></div>
+  <div class="filter-bar">
+    <button class="filter-chip active" data-cat="ALL" onclick="filterCat('ALL', this)">Tümü</button>
+    <button class="filter-chip" data-cat="AI" onclick="filterCat('AI', this)">🤖 AI / Yazılım</button>
+    <button class="filter-chip" data-cat="Robotics" onclick="filterCat('Robotics', this)">🦾 Robotik</button>
+    <button class="filter-chip" data-cat="Wearables" onclick="filterCat('Wearables', this)">⌚ Giyilebilir</button>
+    <button class="filter-chip" data-cat="Implants" onclick="filterCat('Implants', this)">🔩 İmplant</button>
+    <button class="filter-chip" data-cat="Diagnostics" onclick="filterCat('Diagnostics', this)">🔬 Tanı</button>
+    <button class="filter-chip" data-cat="Therapeutics" onclick="filterCat('Therapeutics', this)">💊 Terapi</button>
+    <button class="filter-chip" data-cat="Drug-Device" onclick="filterCat('Drug-Device', this)">⚗️ İlaç-Cihaz</button>
+  </div>
+  <div class="product-grid" id="productGrid">
+    <div class="loading"><div class="spinner"></div>Ürünler yükleniyor...</div>
+  </div>
+</div>
+
+<!-- APPROVALS TAB -->
+<div id="tab-approvals" class="tab-panel">
+  <div class="date-selector" id="approvalDatePills"></div>
+  <div class="approvals-layout">
+    <div class="approvals-col">
+      <div class="approvals-header">
+        <span class="approvals-flag">🇺🇸</span>
+        <span class="approvals-title">FDA Onayları</span>
+        <span class="approval-count" id="fdaCount">—</span>
+      </div>
+      <div id="fdaList"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
+    </div>
+    <div class="approvals-col">
+      <div class="approvals-header">
+        <span class="approvals-flag">🇪🇺</span>
+        <span class="approvals-title">CE / MDR Onayları</span>
+        <span class="approval-count" id="ceCount">—</span>
+      </div>
+      <div id="ceList"><div class="loading"><div class="spinner"></div>Yükleniyor...</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ARCHIVE TAB -->
+<div id="tab-archive" class="tab-panel">
+  <div class="archive-list" id="archiveList">
+    <div class="loading"><div class="spinner"></div>Arşiv yükleniyor...</div>
+  </div>
+</div>
+
+<!-- FAVORITES TAB -->
+<div id="tab-favorites" class="tab-panel">
+  <div class="archive-list" id="favoritesList">
+    <div class="loading"><div class="spinner"></div>Yükleniyor...</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModal()">
+  <div id="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+const CAT_ICONS = {
+  AI: '🤖', Robotics: '🦾', Wearables: '⌚', Implants: '🔩',
+  Diagnostics: '🔬', Therapeutics: '💊', 'Drug-Device': '⚗️'
+};
+const STAGE_LABELS = {
+  Startup:        ['badge-stage-startup',  'STARTUP'],
+  Clinical_Trial: ['badge-stage-clinical', 'KLİNİK'],
+  FDA_Cleared:    ['badge-stage-fda',      'FDA ✓'],
+  CE_Marked:      ['badge-stage-ce',       'CE ✓'],
+  Both_Cleared:   ['badge-stage-both',     'FDA + CE ✓']
+};
+const MARKET_ICONS = { High: '📈', 'Very High': '🔥', Massive: '🚀' };
+const MARKET_TR   = { High: 'Yüksek Potansiyel', 'Very High': 'Çok Yüksek Potansiyel', Massive: 'Devasa Potansiyel' };
+
+// Per-product favorites stored in localStorage
+let savedProducts = new Set(JSON.parse(localStorage.getItem('medtech_favs') || '[]'));
+// Map<productId, {product, date}> — built as data loads
+const allProductsMap = new Map();
+
+let allDigests = [];
+let currentDate = null;
+let currentData = null;
+let activeFilter = 'ALL';
+let activeTab = 'products';
+
+function saveFavs() {
+  localStorage.setItem('medtech_favs', JSON.stringify([...savedProducts]));
+}
+
+async function init() {
+  loadStats();
+  const res = await fetch('/api/digests');
+  allDigests = await res.json();
+  renderDatePills();
+  renderArchive();
+  renderFavorites();
+  if (allDigests.length > 0) selectDate(allDigests[0].date);
+  else showNoData();
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const s = await r.json();
+    document.getElementById('trackedCount').textContent = `${s.total_tracked} ürün takipte`;
+  } catch {}
+}
+
+function renderDatePills() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('datePills').innerHTML = allDigests.map((d, i) => {
+    const label = d.date === today ? 'Bugün' : d.date;
+    return `<button class="date-pill ${i===0?'active':''}" onclick="selectDate('${d.date}', this)">
+      ${label}${i===0?'<span class="new-dot"></span>':''}
+    </button>`;
+  }).join('') || '<span style="font-family:var(--mono);font-size:10px;color:var(--text)">Henüz veri yok</span>';
+
+  document.getElementById('approvalDatePills').innerHTML = allDigests.map((d, i) =>
+    `<button class="date-pill ${i===0?'active':''}" onclick="selectApprovalDate('${d.date}', this)">
+      ${d.date === today ? 'Bugün' : d.date}
+    </button>`
+  ).join('');
+}
+
+function selectDate(date, btn) {
+  currentDate = date;
+  document.querySelectorAll('#datePills .date-pill').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadProductData(date);
+}
+
+function selectApprovalDate(date, btn) {
+  document.querySelectorAll('#approvalDatePills .date-pill').forEach(p => p.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  loadApprovalData(date);
+}
+
+async function loadProductData(date) {
+  const grid = document.getElementById('productGrid');
+  grid.innerHTML = '<div class="loading"><div class="spinner"></div>Yükleniyor...</div>';
+  const r = await fetch(`/api/data/${date}`);
+  if (r.ok) {
+    currentData = await r.json();
+    (currentData.products || []).forEach(p => allProductsMap.set(p.id, { product: p, date }));
+    renderProducts(currentData.products || []);
+    document.getElementById('tabProductCount').textContent = currentData.products?.length || 0;
+    if (activeTab === 'approvals') renderApprovalsFromData(currentData);
+    return;
+  }
+  const r2 = await fetch(`/api/digest/${date}`);
+  if (r2.ok) {
+    const d = await r2.json();
+    grid.innerHTML = `<div style="padding:24px;max-width:800px"><div style="font-family:var(--display);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);margin-bottom:16px">Markdown Görünüm</div><div class="md-content">${d.html}</div></div>`;
+    document.getElementById('tabProductCount').textContent = '—';
+    return;
+  }
+  grid.innerHTML = '<div class="loading" style="color:var(--text)">Veri bulunamadı.</div>';
+}
+
+async function loadApprovalData(date) {
+  document.getElementById('fdaList').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+  document.getElementById('ceList').innerHTML  = '<div class="loading"><div class="spinner"></div></div>';
+  const r = await fetch(`/api/data/${date}`);
+  if (r.ok) renderApprovalsFromData(await r.json());
+  else {
+    document.getElementById('fdaList').innerHTML = '<div class="loading" style="color:var(--text)">Bu tarih için onay verisi yok.</div>';
+    document.getElementById('ceList').innerHTML  = '<div class="loading" style="color:var(--text)">Bu tarih için onay verisi yok.</div>';
+  }
+}
+
+function renderApprovalsFromData(data) {
+  const fda = data.fda_approvals || [], ce = data.ce_approvals || [];
+  document.getElementById('fdaCount').textContent = fda.length;
+  document.getElementById('ceCount').textContent  = ce.length;
+  document.getElementById('fdaList').innerHTML = fda.length ? fda.map(a => renderApprovalItem(a,'fda')).join('') : '<div class="loading" style="color:var(--text)">Bu günde FDA onayı yok.</div>';
+  document.getElementById('ceList').innerHTML  = ce.length  ? ce.map(a  => renderApprovalItem(a,'ce')).join('')  : '<div class="loading" style="color:var(--text)">Bu günde CE onayı yok.</div>';
+  document.getElementById('tabApprovalCount').textContent = fda.length + ce.length;
+}
+
+function renderApprovalItem(a, type) {
+  const tc = type==='fda' ? (a.approval_type==='PMA'?'type-pma':a.approval_type==='De Novo'?'type-denovo':'type-510k') : 'type-ce';
+  return `<div class="approval-item">
+    <div class="approval-meta">
+      <span class="badge approval-type ${tc}">${a.approval_type||(type==='ce'?'CE':'510(k)')}</span>
+      <span class="approval-date">${a.date||''}</span>
+    </div>
+    <div class="approval-device">${a.device}</div>
+    <div class="approval-company">${a.company}</div>
+    <div class="approval-summary">${a.indication||''}${a.indication&&a.summary_tr?' — ':''}${a.summary_tr||''}</div>
+  </div>`;
+}
+
+function renderProducts(products) {
+  const grid = document.getElementById('productGrid');
+  const filtered = activeFilter === 'ALL' ? products : products.filter(p => p.category === activeFilter);
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">${CAT_ICONS[activeFilter]||'📭'}</div>
+      <div class="empty-title">${activeFilter==='ALL'?'Bugün için ürün yok':`${activeFilter} kategorisinde ürün yok`}</div>
+      <div class="empty-desc">Yarın sabah 08:10'da yeni ürünler yüklenecek.</div>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = filtered.map(p => renderCard(p)).join('');
+}
+
+function renderCard(p) {
+  const [stageClass, stageLabel] = STAGE_LABELS[p.stage] || ['badge-stage-startup', 'STARTUP'];
+  const icon   = CAT_ICONS[p.category] || '🏥';
+  const market = p.market_potential || 'High';
+  const isSaved = savedProducts.has(p.id);
+  const imgSection = p.image_url
+    ? `<img class="card-img" src="${p.image_url}" alt="${p.name}" onerror="this.outerHTML=getPlaceholderHTML('${p.category}','${icon}')">`
+    : `<div class="card-img-placeholder" data-cat="${p.category}"><span class="cat-icon">${icon}</span></div>`;
+  const logoImg = p.logo_domain
+    ? `<img class="company-logo" src="https://logo.clearbit.com/${p.logo_domain}" alt="" onerror="this.style.display='none'">`
+    : '';
+  return `
+    <div class="product-card" data-cat="${p.category}" data-id="${p.id}" onclick="openProduct('${p.id}')">
+      <div style="position:relative">
+        ${imgSection}
+        <div class="card-badges">
+          <span class="badge badge-cat" data-cat="${p.category}">${icon} ${p.category}</span>
+          <span class="badge ${stageClass}">${stageLabel}</span>
+        </div>
+        <button class="card-fav ${isSaved?'saved':''}" onclick="toggleProductFav(event,'${p.id}')" title="${isSaved?'Favoriden çıkar':'Favorilere ekle'}">★</button>
+      </div>
+      <div class="card-body">
+        <div class="card-company">
+          ${logoImg}
+          <span class="company-name">${p.company}</span>
+          ${p.website?`<a class="company-link" href="${p.website}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ site</a>`:''}
+        </div>
+        <div class="card-title">${p.name}</div>
+        <div class="card-summary">${p.summary_tr}</div>
+        <div class="card-game-changer">
+          <div class="game-changer-label">🔥 Neden Oyun Değiştirici</div>
+          <div class="game-changer-text">${p.game_changer_reason}</div>
+        </div>
+        <div class="card-footer">
+          <div class="market-badge market-${market.toLowerCase().replace(' ','')}">
+            ${MARKET_ICONS[market]||'📈'} ${MARKET_TR[market]||market}
+          </div>
+          <div class="card-year">${p.year||''}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function getPlaceholderHTML(cat, icon) {
+  return `<div class="card-img-placeholder" data-cat="${cat}"><span class="cat-icon">${icon}</span></div>`;
+}
+
+// ── PRODUCT MODAL ──────────────────────────────────────
+function openProduct(id) {
+  const entry = allProductsMap.get(id);
+  if (!entry) return;
+  const p = entry.product;
+  const [stageClass, stageLabel] = STAGE_LABELS[p.stage] || ['badge-stage-startup', 'STARTUP'];
+  const icon   = CAT_ICONS[p.category] || '🏥';
+  const market = p.market_potential || 'High';
+  const isSaved = savedProducts.has(p.id);
+  const tags = (p.tags || []).map(t => `<span class="modal-tag">${t}</span>`).join('');
+  const imgHtml = p.image_url
+    ? `<img class="modal-img" src="${p.image_url}" alt="${p.name}" onerror="this.outerHTML='<div class=modal-img-placeholder data-cat=${p.category}><span style=font-size:64px>${icon}</span></div>'">`
+    : `<div class="modal-img-placeholder" data-cat="${p.category}"><span style="font-size:64px">${icon}</span></div>`;
+  const logoImg = p.logo_domain
+    ? `<img class="modal-logo" src="https://logo.clearbit.com/${p.logo_domain}" alt="" onerror="this.style.display='none'">`
+    : '';
+
+  document.getElementById('modal-content').innerHTML = `
+    ${imgHtml}
+    <div class="modal-body">
+      <div class="modal-meta">
+        <span class="badge badge-cat" data-cat="${p.category}">${icon} ${p.category}</span>
+        <span class="badge ${stageClass}">${stageLabel}</span>
+        ${p.year ? `<span class="badge badge-stage-startup">${p.year}</span>` : ''}
+      </div>
+      <div class="modal-company-row">
+        ${logoImg}
+        <span class="modal-company-name">${p.company}</span>
+        ${p.website ? `<a class="modal-website" href="${p.website}" target="_blank" rel="noopener">↗ ${p.website.replace(/^https?:\/\//,'')}</a>` : ''}
+      </div>
+      <div class="modal-title">${p.name}</div>
+      <div class="modal-divider"></div>
+      <div class="modal-section-label">📋 Özet</div>
+      <div class="modal-summary">${p.summary_tr}</div>
+      <div class="modal-gc">
+        <div class="modal-section-label">🔥 Neden Oyun Değiştirici</div>
+        <div class="modal-gc-text">${p.game_changer_reason}</div>
+      </div>
+      ${tags ? `<div class="modal-tags">${tags}</div>` : ''}
+      <div class="modal-footer">
+        <div class="market-badge market-${market.toLowerCase().replace(' ','')}">
+          ${MARKET_ICONS[market]||'📈'} ${MARKET_TR[market]||market}
+        </div>
+        <button class="modal-fav-btn ${isSaved?'saved':''}" id="modal-fav-btn" onclick="toggleProductFav(event,'${p.id}')">
+          ★ ${isSaved ? 'Favorilerde' : 'Favorilere Ekle'}
+        </button>
+      </div>
+    </div>`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ── FAVORITES (per-product) ────────────────────────────
+function toggleProductFav(e, productId) {
+  e.stopPropagation();
+  const wasSaved = savedProducts.has(productId);
+  if (wasSaved) savedProducts.delete(productId);
+  else savedProducts.add(productId);
+  saveFavs();
+
+  // Update all card fav buttons for this product
+  document.querySelectorAll(`.product-card[data-id="${productId}"] .card-fav`).forEach(btn => {
+    btn.classList.toggle('saved', !wasSaved);
+    btn.title = wasSaved ? 'Favorilere ekle' : 'Favoriden çıkar';
+  });
+
+  // Update modal fav button if open
+  const mBtn = document.getElementById('modal-fav-btn');
+  if (mBtn) {
+    mBtn.classList.toggle('saved', !wasSaved);
+    mBtn.innerHTML = `★ ${!wasSaved ? 'Favorilerde' : 'Favorilere Ekle'}`;
+  }
+
+  if (activeTab === 'favorites') renderFavorites();
+}
+
+// ── FILTER ────────────────────────────────────────────
+function filterCat(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  if (currentData) renderProducts(currentData.products || []);
+}
+
+// ── ARCHIVE ───────────────────────────────────────────
+async function renderArchive() {
+  const list = document.getElementById('archiveList');
+  if (!allDigests.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📂</div><div class="empty-title">Arşiv boş</div></div>';
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  list.innerHTML = allDigests.map(d => {
+    const date  = new Date(d.date);
+    const label = d.date === today ? 'Bugün' : date.toLocaleDateString('tr-TR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    return `
+      <div class="archive-item" onclick="goToDate('${d.date}')">
+        <div>
+          <div class="archive-date">${label}</div>
+          <div class="archive-meta">${d.hasStructured ? 'Yapılandırılmış veri ✓' : 'Markdown'} · ${d.date}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderFavorites() {
+  const list = document.getElementById('favoritesList');
+  if (!savedProducts.size) {
+    list.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">⭐</div>
+      <div class="empty-title">Henüz favori yok</div>
+      <div class="empty-desc">Ürün kartlarındaki ★ ile veya detay modalından ürünleri favorilere ekleyebilirsin.</div>
+    </div>`;
+    return;
+  }
+  const items = [...savedProducts].map(id => {
+    const entry = allProductsMap.get(id);
+    if (!entry) return '';
+    const p = entry.product;
+    const icon = CAT_ICONS[p.category] || '🏥';
+    const [stageClass, stageLabel] = STAGE_LABELS[p.stage] || ['badge-stage-startup','STARTUP'];
+    return `
+      <div class="archive-item" onclick="openProduct('${p.id}')">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="font-size:26px">${icon}</div>
+          <div>
+            <div class="archive-date" style="font-size:14px">${p.name}</div>
+            <div class="archive-meta">${p.company} · ${entry.date}</div>
+          </div>
+        </div>
+        <div class="archive-badges">
+          <span class="badge ${stageClass}">${stageLabel}</span>
+          <button class="archive-fav-btn saved" onclick="toggleProductFav(event,'${p.id}')">★</button>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+  list.innerHTML = items || `<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-title">Henüz favori yok</div></div>`;
+}
+
+function goToDate(date) {
+  switchTab('products');
+  selectDate(date);
+}
+
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const map = { products:0, approvals:1, archive:2, favorites:3 };
+  document.querySelectorAll('.tab')[map[tab]]?.classList.add('active');
+  document.getElementById(`tab-${tab}`).classList.add('active');
+  if (tab === 'approvals' && currentDate) loadApprovalData(currentDate);
+  if (tab === 'archive')   renderArchive();
+  if (tab === 'favorites') renderFavorites();
+}
+
+function showNoData() {
+  document.getElementById('productGrid').innerHTML = `
+    <div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">🏥</div>
+      <div class="empty-title">Henüz veri yok</div>
+      <div class="empty-desc">Zamanlanmış görev her sabah 08:10'da çalışır.<br>İlk özet yarın sabah burada olacak.</div>
+    </div>`;
+}
+
+init();
+</script>
+</body>
+</html>

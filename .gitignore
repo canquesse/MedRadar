@@ -1,0 +1,30 @@
+# Bağımlılıklar
+node_modules/
+medtech_digest/node_modules/
+
+# Veritabanı (çalışma zamanında oluşur)
+medtech_digest/news.db
+medtech_digest/news.db-shm
+medtech_digest/news.db-wal
+
+# Log dosyaları
+medtech_digest/server.log
+*.log
+
+# Otomatik oluşturulan digest dosyaları (YYYY-MM-DD.json / .md)
+medtech_digest/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].json
+medtech_digest/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md
+
+# Favoriler (çalışma zamanı verisi)
+medtech_digest/favorites/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Claude Code — geliştirme ortamına özel, repoda gereksiz
+.claude/
+
+# Ortam değişkenleri
+.env
+.env.local
